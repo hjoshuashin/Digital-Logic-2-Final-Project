@@ -23,14 +23,13 @@ module square_fsm(
     wire SQUARE_DONE;
     wire HEX_DONE;
 
+    wire [3:0] hex_lo;
+    wire [3:0] hex_hi;
+
     wire [15:0] DISPLAY_DATA;
 
     reg [3:0] state;
     reg [3:0] next_state;
-
-
-    reg [3:0] hex_lo;
-    reg [3:0] hex_hi;
 
     reg [3:0] input_latched;
     reg go_prev;
@@ -75,6 +74,17 @@ module square_fsm(
         .COUT(COUT)
     );
 
+    hex_fsm hex_unit(
+        .CLK(BOARDCLK),
+        .RST_N(RST_N),
+        .SQUARE_DONE(SQUARE_DONE),
+        .VALUE(DATA_X),
+
+        .HEX_LO(hex_lo),
+        .HEX_HI(hex_hi),
+        .HEX_DONE(HEX_DONE)
+    );
+
     assign WADDR =
         (state == 4'b0001) ? 4'd0 :
         (state == 4'b0010 || state == 4'b0101) ? 4'd1 :
@@ -98,14 +108,11 @@ module square_fsm(
     assign SQUARE_DONE =
         (state == 4'b0111) ||
         (state == 4'b1000) ||
-        (state == 4'b1001) ||
-        (state == 4'b1010);
+        (state == 4'b1001);
 
-    assign HEX_DONE =
-        (state == 4'b1001) ||
-        (state == 4'b1010);
-
-    assign DONE = HEX_DONE;
+    assign DONE =
+        (state == 4'b1000) ||
+        (state == 4'b1001);
 
     assign DISPLAY_DATA = {
         input_latched,
@@ -166,19 +173,16 @@ module square_fsm(
             end
 
             4'b0111: begin
-                next_state = 4'b1000;
+                if (HEX_DONE)
+                    next_state = 4'b1000;
             end
 
             4'b1000: begin
-                next_state = 4'b1001;
+                if (!GO)
+                    next_state = 4'b1001;
             end
 
             4'b1001: begin
-                if (!GO)
-                    next_state = 4'b1010;
-            end
-
-            4'b1010: begin
                 if (start_pulse)
                     next_state = 4'b0001;
             end
@@ -194,12 +198,7 @@ module square_fsm(
 
         if (!RST_N) begin
             state <= 4'b0000;
-
             input_latched <= 4'd0;
-
-            hex_lo <= 4'd0;
-            hex_hi <= 4'd0;
-
             go_prev <= 1'b0;
         end
 
@@ -209,18 +208,10 @@ module square_fsm(
             go_prev <= GO;
 
             if ((state == 4'b0000 ||
-                 state == 4'b1010) && start_pulse) begin
+                 state == 4'b1001) && start_pulse) begin
 
                 input_latched <= N;
 
-            end
-
-            if (state == 4'b0111) begin
-                hex_lo <= DATA_X[3:0];
-            end
-
-            if (state == 4'b1000) begin
-                hex_hi <= DATA_X[7:4];
             end
 
         end
