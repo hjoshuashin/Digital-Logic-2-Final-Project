@@ -29,7 +29,7 @@ module cold_fsm(
         case (STATE)
             SR: ONECOLD = 4'b1110;
             SL: ONECOLD = 4'b0111;
-            SML: ONECOLD = 4'b1011;
+            SML: ONECOLD = 4'b1111;
             SMR: ONECOLD = 4'b1101;
             default: ONECOLD = 4'b0111;
         endcase
