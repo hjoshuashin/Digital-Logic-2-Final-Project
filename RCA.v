@@ -1,4 +1,3 @@
-// TODO: Come up with a better name for ripple carry adder?
 module RCA(
     input [7:0] A,
     B,
