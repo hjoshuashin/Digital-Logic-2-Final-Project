@@ -1,89 +1,46 @@
 module square_fsm(
-    input [3:0] N,
-    input GO,
+    input CLK,
     input RST_N,
-    input BOARDCLK,
+    input GO,
+    input [3:0] N,
 
-    output A, B, C, D, E, F, G,
-    output [3:0] ONECOLD,
-    output DONE
+    input [7:0] DATA_X,
+    input [7:0] DATA_Y,
+    input [7:0] DATA_Z,
+    input [7:0] SUM,
+
+    input HEX_DONE,
+
+    output [7:0] ADDER_A,
+    output [7:0] ADDER_B,
+
+    output [3:0] WADDR,
+    output WEN,
+    output [7:0] DATA_IN,
+
+    output SQUARE_DONE,
+    output DONE,
+    output reg [3:0] INPUT_LATCHED
 );
-
-    wire [7:0] DATA_X;
-    wire [7:0] DATA_Y;
-    wire [7:0] DATA_Z;
-
-    wire [7:0] SUM;
-    wire COUT;
-
-    wire [3:0] WADDR;
-    wire [7:0] DATA_IN;
-    wire WEN;
-
-    wire SQUARE_DONE;
-    wire HEX_DONE;
-
-    wire [3:0] hex_lo;
-    wire [3:0] hex_hi;
-
-    wire [15:0] DISPLAY_DATA;
 
     reg [3:0] state;
     reg [3:0] next_state;
 
-    reg [3:0] input_latched;
     reg go_prev;
 
     wire start_pulse;
 
     assign start_pulse = GO & ~go_prev;
 
-    wire [7:0] adder_a;
-    wire [7:0] adder_b;
-
-    assign adder_a =
+    assign ADDER_A =
         (state == 4'b0101) ? DATA_X :
         (state == 4'b0110) ? DATA_Z :
                              8'd0;
 
-    assign adder_b =
+    assign ADDER_B =
         (state == 4'b0101) ? DATA_Y :
         (state == 4'b0110) ? 8'hFF :
                              8'd0;
-
-    regfile_8x8 registers(
-        .WADDR(WADDR[2:0]),
-        .WEN(WEN),
-        .DATA_IN(DATA_IN),
-        .CLK(BOARDCLK),
-
-        .XADDR(3'd1),
-        .YADDR(3'd0),
-        .ZADDR(3'd2),
-
-        .DATA_X(DATA_X),
-        .DATA_Y(DATA_Y),
-        .DATA_Z(DATA_Z)
-    );
-
-    RCA add_unit(
-        .A(adder_a),
-        .B(adder_b),
-        .CIN(1'b0),
-        .SUM(SUM),
-        .COUT(COUT)
-    );
-
-    hex_fsm hex_unit(
-        .CLK(BOARDCLK),
-        .RST_N(RST_N),
-        .SQUARE_DONE(SQUARE_DONE),
-        .VALUE(DATA_X),
-
-        .HEX_LO(hex_lo),
-        .HEX_HI(hex_hi),
-        .HEX_DONE(HEX_DONE)
-    );
 
     assign WADDR =
         (state == 4'b0001) ? 4'd0 :
@@ -99,7 +56,7 @@ module square_fsm(
         (state == 4'b0110);
 
     assign DATA_IN =
-        (state == 4'b0001) ? {4'b0000, input_latched} :
+        (state == 4'b0001) ? {4'b0000, INPUT_LATCHED} :
         (state == 4'b0010) ? 8'd0 :
         (state == 4'b0011) ? DATA_Y :
         (state == 4'b0101 || state == 4'b0110) ? SUM :
@@ -113,26 +70,6 @@ module square_fsm(
     assign DONE =
         (state == 4'b1000) ||
         (state == 4'b1001);
-
-    assign DISPLAY_DATA = {
-        input_latched,
-        4'h0,
-        hex_hi,
-        hex_lo
-    };
-
-    wire [6:0] segments;
-    wire [3:0] ONECOLD_RAW;
-
-    illusion display(
-        .BOARDCLK(BOARDCLK),
-        .DATA(DISPLAY_DATA),
-        .SEGMENTS(segments),
-        .ONECOLD(ONECOLD_RAW)
-    );
-
-    assign {A, B, C, D, E, F, G} = segments;
-    assign ONECOLD = ONECOLD_RAW | 4'b0100;
 
     always @(*) begin
 
@@ -194,11 +131,11 @@ module square_fsm(
         endcase
     end
 
-    always @(posedge BOARDCLK or negedge RST_N) begin
+    always @(posedge CLK or negedge RST_N) begin
 
         if (!RST_N) begin
             state <= 4'b0000;
-            input_latched <= 4'd0;
+            INPUT_LATCHED <= 4'd0;
             go_prev <= 1'b0;
         end
 
@@ -210,7 +147,7 @@ module square_fsm(
             if ((state == 4'b0000 ||
                  state == 4'b1001) && start_pulse) begin
 
-                input_latched <= N;
+                INPUT_LATCHED <= N;
 
             end
 
