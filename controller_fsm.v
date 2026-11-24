@@ -109,6 +109,5 @@ module controller_fsm(
     );
 
     assign {A, B, C, D, E, F, G} = segments;
-    assign ONECOLD = ONECOLD_RAW | 4'b0100;
 
 endmodule
