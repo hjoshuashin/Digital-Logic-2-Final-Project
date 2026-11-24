@@ -27,8 +27,8 @@ module controller_fsm(
     wire HEX_DONE;
 
     wire [3:0] input_latched;
-    wire [3:0] hex_lo;
-    wire [3:0] hex_hi;
+    wire [3:0] hex_lsb;
+    wire [3:0] hex_msb;
 
     wire [15:0] DISPLAY_DATA;
 
@@ -86,16 +86,16 @@ module controller_fsm(
     .SQUARE_DONE(SQUARE_DONE),
     .VALUE(DATA_X),
 
-    .HEX_LSB(hex_lo),
-    .HEX_MSB(hex_hi),
+    .HEX_LSB(hex_lsb),
+    .HEX_MSB(hex_msb),
     .HEX_DONE(HEX_DONE)
 );
 
     assign DISPLAY_DATA = {
         input_latched,
         4'h0,
-        hex_hi,
-        hex_lo
+        hex_msb,
+        hex_lsb
     };
 
     wire [6:0] segments;
