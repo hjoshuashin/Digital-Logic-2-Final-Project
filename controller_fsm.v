@@ -99,13 +99,12 @@ module controller_fsm(
     };
 
     wire [6:0] segments;
-    wire [3:0] ONECOLD_RAW;
 
     illusion display(
         .BOARDCLK(BOARDCLK),
         .DATA(DISPLAY_DATA),
         .SEGMENTS(segments),
-        .ONECOLD(ONECOLD_RAW)
+        .ONECOLD(ONECOLD)
     );
 
     assign {A, B, C, D, E, F, G} = segments;
