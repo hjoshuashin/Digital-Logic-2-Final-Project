@@ -4,8 +4,8 @@ module hex_fsm(
     input SQUARE_DONE,
     input [7:0] VALUE,
 
-    output reg [3:0] HEX_LO,
-    output reg [3:0] HEX_HI,
+    output reg [3:0] HEX_LSB,
+    output reg [3:0] HEX_MSB,
     output HEX_DONE
 );
 
@@ -49,8 +49,8 @@ module hex_fsm(
 
         if (!RST_N) begin
             state <= 2'b00;
-            HEX_LO <= 4'd0;
-            HEX_HI <= 4'd0;
+            HEX_LSB <= 4'd0;
+            HEX_MSB <= 4'd0;
         end
 
         else begin
@@ -58,11 +58,11 @@ module hex_fsm(
             state <= next_state;
 
             if (state == 2'b01) begin
-                HEX_LO <= VALUE[3:0];
+                HEX_LSB <= VALUE[3:0];
             end
 
             if (state == 2'b10) begin
-                HEX_HI <= VALUE[7:4];
+                HEX_MSB <= VALUE[7:4];
             end
 
         end
