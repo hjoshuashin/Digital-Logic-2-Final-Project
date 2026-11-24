@@ -81,15 +81,15 @@ module controller_fsm(
     );
 
     hex_fsm hex_unit(
-        .CLK(BOARDCLK),
-        .RST_N(RST_N),
-        .SQUARE_DONE(SQUARE_DONE),
-        .VALUE(DATA_X),
+    .CLK(BOARDCLK),
+    .RST_N(RST_N),
+    .SQUARE_DONE(SQUARE_DONE),
+    .VALUE(DATA_X),
 
-        .HEX_LO(hex_lo),
-        .HEX_HI(hex_hi),
-        .HEX_DONE(HEX_DONE)
-    );
+    .HEX_LSB(hex_lo),
+    .HEX_MSB(hex_hi),
+    .HEX_DONE(HEX_DONE)
+);
 
     assign DISPLAY_DATA = {
         input_latched,
